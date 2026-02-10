@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel Principal | EFUSA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- FAVORITO VERDE -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%2216a34a%22>⚽</text></svg>">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { 50: '#dcfce7', 100: '#bbf7d0', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' }
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+            'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Iconos -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- Fuente -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Librerías para Reportes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #F1F5F9; }
+    .nav-link.active { background-color: #dcfce7; color: #15803d; border-right: 3px solid #16a34a; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    
+    /* Línea de tiempo */
+    .activity-line::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 24px;
+      bottom: 0;
+      width: 2px;
+      background: #E2E8F0;
+    }
+    .activity-item:last-child .activity-line::before { display: none; }
+
+    /* Animación Saludo */
+    @keyframes slideInFade {
+      0% { opacity: 0; transform: translateY(-15px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-saludo { animation: slideInFade 0.8s ease-out forwards; }
+
+    /* Sidebar Móvil Transición */
+    #mobile-sidebar {
+      transition: transform 0.3s ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="text-slate-800 antialiased h-screen flex overflow-hidden relative">
+
+  <!-- OVERLAY OSCURO (Para móvil) -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity opacity-0"></div>
+
+  <!-- SIDEBAR -->
+  <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col z-30 shadow-xl transform -translate-x-full md:translate-x-0 md:static md:flex transition-transform duration-300">
+    <div class="h-20 flex items-center px-6 border-b border-slate-100">
+      <div class="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center text-white mr-3 shadow-lg shadow-brand-500/30">
+        <i class="ph ph-soccer-ball text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-brand-700 tracking-tight">EFUSA</h1>
+        <p class="text-[10px] font-semibold text-brand-600 uppercase tracking-wider">Gestión Deportiva</p>
+      </div>
+      <!-- Botón cerrar solo visible en móvil -->
+      <button id="close-sidebar" class="md:hidden ml-auto text-slate-400 hover:text-rose-500">
+        <i class="ph ph-x text-2xl"></i>
+      </button>
+    </div>
+
+    <nav class="flex-1 py-6 space-y-1 px-3">
+      <a href="#" class="nav-link active flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-lg transition-colors">
+        <i class="ph ph-squares-four text-lg"></i> Panel Principal
+      </a>
+      <a href="jugadores.html" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-900 rounded-lg transition-colors">
+        <i class="ph ph-users-three text-lg"></i> Gestión Jugadores
+      </a>
+      <a href="pagos.html" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-900 rounded-lg transition-colors">
+        <i class="ph ph-money text-lg"></i> Gestión Pagos
+      </a>
+      <a href="alertas.html" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-900 rounded-lg transition-colors">
+        <i class="ph ph-warning-octagon text-lg"></i> Alertas
+      </a>
+    </nav>
+
+    <div class="p-4 border-t border-slate-100">
+      <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50">
+        <div class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xs">AD</div>
+        <div>
+          <p class="text-xs font-bold text-slate-900">Administrador</p>
+          <p class="text-[10px] text-slate-500">admin@efusa.com</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden relative md:static">
+    
+    <!-- HEADER MÓVIL -->
+    <header class="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shadow-sm z-20">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white">
+          <i class="ph ph-soccer-ball text-lg"></i>
+        </div>
+        <div class="font-bold text-lg text-brand-700">EFUSA</div>
+      </div>
+      <!-- BOTÓN HAMBURGUESA -->
+      <button id="open-sidebar" class="text-slate-600 p-2 hover:bg-slate-100 rounded-lg">
+        <i class="ph ph-list text-2xl"></i>
+      </button>
+    </header>
+
+    <main class="flex-1 overflow-y-auto custom-scroll bg-slate-50/30 p-4 md:p-8">
+      
+      <div class="max-w-7xl mx-auto space-y-6">
+
+        <!-- SECCIÓN DE BIENVENIDA -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-card border border-slate-100">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h2 id="saludo-dinamico" class="text-2xl md:text-3xl font-extrabold text-slate-800 anim-saludo">Bienvenido, Admin</h2>
+              <p class="text-slate-500 mt-1 max-w-md">Panel de control administrativo. Gestiona jugadores, pagos y alertas.</p>
+              <div class="mt-4 flex items-center gap-2 text-sm text-slate-400">
+                <i class="ph ph-calendar-blank"></i>
+                <span id="fecha-actual" class="font-medium text-slate-600">Cargando fecha...</span>
+              </div>
+            </div>
+            
+            <!-- Logo decorativo -->
+            <div class="hidden md:flex items-center justify-center w-32 h-32 bg-brand-50 rounded-2xl text-brand-600">
+                <i class="ph ph-soccer-ball text-6xl"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white p-5 md:p-6 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
+            <div>
+              <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">Total Jugadores</p>
+              <h3 id="stat-total" class="text-2xl md:text-3xl font-bold text-slate-900 mt-1">0</h3>
+            </div>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center">
+              <i class="ph ph-users text-lg md:text-xl"></i>
+            </div>
+          </div>
+          
+          <div class="bg-white p-5 md:p-6 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
+            <div>
+              <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">Recaudado Total</p>
+              <h3 id="stat-dinero" class="text-xl md:text-2xl font-bold text-emerald-600 mt-1">$0</h3>
+            </div>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i class="ph ph-currency-dollar text-lg md:text-xl"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 md:p-6 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
+            <div>
+              <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">Activos</p>
+              <h3 id="stat-activos" class="text-2xl md:text-3xl font-bold text-brand-600 mt-1">0</h3>
+            </div>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center">
+              <i class="ph ph-check-circle text-lg md:text-xl"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 md:p-6 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
+            <div>
+              <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">Deudores</p>
+              <h3 id="stat-deudores" class="text-2xl md:text-3xl font-bold text-rose-600 mt-1">0</h3>
+            </div>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+              <i class="ph ph-warning text-lg md:text-xl"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          
+          <!-- ACTIVIDAD RECIENTE -->
+          <section class="lg:col-span-1 bg-white rounded-xl md:rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-full">
+            <div class="px-5 py-4 border-b border-slate-50 flex justify-between items-center bg-brand-50/30">
+              <h3 class="font-bold text-brand-900 text-sm flex items-center gap-2">
+                <i class="ph ph-clock-counter-clockwise text-brand-600"></i> Actividad Reciente
+              </h3>
+              <span class="text-[10px] font-semibold bg-white text-brand-600 border border-brand-200 px-2 py-0.5 rounded shadow-sm">Últimos 5</span>
+            </div>
+            <div class="p-4 space-y-0 max-h-[500px] overflow-y-auto custom-scroll" id="actividad-feed">
+              <div class="text-center text-xs text-slate-400 py-8 italic">No hay actividad reciente.</div>
+            </div>
+          </section>
+
+          <!-- LISTADO DE JUGADORES -->
+          <section class="lg:col-span-2 bg-white rounded-xl md:rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
+            <div class="px-5 md:px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white">
+              <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                <i class="ph ph-list-dashes text-brand-600"></i> Directorio de Jugadores
+              </h3>
+              <div class="flex gap-2 md:gap-3">
+                <button onclick="exportarExcel()" class="text-[10px] md:text-xs font-bold px-3 py-1.5 border rounded-lg text-brand-700 bg-brand-50 hover:bg-brand-100 hover:shadow-sm transition-all flex items-center gap-2">
+                  <i class="ph ph-file-xls text-base"></i> <span class="hidden md:inline">Descargar Excel</span>
+                </button>
+                <button onclick="exportarPDF()" class="text-[10px] md:text-xs font-bold px-3 py-1.5 border rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 hover:shadow-sm transition-all flex items-center gap-2">
+                  <i class="ph ph-file-pdf text-base"></i> <span class="hidden md:inline">Descargar PDF</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="px-5 md:px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 border-b border-slate-50 bg-slate-50/20">
+              <div class="md:col-span-2 relative">
+                <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                <input type="text" id="buscador" placeholder="Buscar por nombre..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 text-slate-700">
+              </div>
+              <div>
+                <select id="filtro-categoria" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 text-slate-600">
+                    <option value="">Todas las categorías</option>
+                    <option value="Sub 17-18">Sub 17-18</option>
+                    <option value="Sub 16-15">Sub 16-15</option>
+                    <option value="Sub 14-13">Sub 14-13</option>
+                    <option value="Sub 12-11">Sub 12-11</option>
+                    <option value="Sub 10-9">Sub 10-9</option>
+                    <option value="Sub 8-7">Sub 8-7</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="contenedor-tabla" class="overflow-y-auto custom-scroll flex-1 relative">
+              
+              <!-- VISTA ESCRITORIO (TABLA) -->
+              <div class="hidden md:block h-full">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 sticky top-0 z-10 text-slate-500 uppercase font-bold shadow-sm">
+                    <tr>
+                      <th class="px-4 py-3 border-b border-slate-200">Jugador</th>
+                      <th class="px-4 py-3 border-b border-slate-200">Categoría</th>
+                      <th class="px-4 py-3 border-b border-slate-200">Contacto</th>
+                      <th class="px-4 py-3 border-b border-slate-200">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tabla-jugadores" class="divide-y divide-slate-100"></tbody>
+                </table>
+              </div>
+
+              <!-- VISTA MÓVIL (TARJETAS) -->
+              <div id="vista-movil-jugadores" class="md:hidden p-4 space-y-4 pb-20">
+                <!-- JS Render -->
+              </div>
+            </div>
+
+            <!-- PAGINACIÓN MEJORADA -->
+            <div class="px-5 md:px-6 py-4 md:py-4 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center bg-white gap-4">
+              <span id="info-paginacion" class="text-xs md:text-sm text-slate-500 font-medium text-center md:text-left">Página 1</span>
+              <div class="flex w-full md:w-auto gap-3">
+                <button id="btn-prev" onclick="cambiarPagina(-1)" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-semibold shadow-sm active:scale-95">
+                  <i class="ph ph-caret-left text-lg"></i> Anterior
+                </button>
+                <button id="btn-next" onclick="cambiarPagina(1)" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 border border-brand-600 rounded-lg text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-semibold shadow-md active:scale-95">
+                  Siguiente <i class="ph ph-caret-right text-lg"></i>
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- CONEXIÓN A TU JS -->
+  <script type="module" src="recursos/js/dashboard.js"></script>
+
+  <!-- SCRIPT SALUDO DINÁMICO -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const ahora = new Date();
+      const hora = ahora.getHours();
+      const elementoSaludo = document.getElementById('saludo-dinamico');
+      
+      let textoSaludo = 'Buenos días'; 
+      if (hora >= 12 && hora < 18) {
+        textoSaludo = 'Buenas tardes';
+      } else if (hora >= 18) {
+        textoSaludo = 'Buenas noches';
+      }
+
+      if (elementoSaludo) {
+        elementoSaludo.textContent = `${textoSaludo}, Admin`; 
+      }
+
+      const fechaElemento = document.getElementById('fecha-actual');
+      if (fechaElemento && fechaElemento.textContent === 'Cargando fecha...') {
+        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        fechaElemento.textContent = ahora.toLocaleDateString('es-ES', opciones);
+      }
+    });
+  </script>
+
+</body>
+</html>
